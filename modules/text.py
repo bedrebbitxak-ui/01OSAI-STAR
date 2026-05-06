@@ -1,5 +1,10 @@
-from core.utils import log
+from modules.base import BaseModule
 
-def process(data):
-    log("TEXT MODULE: processing text data")
-    return "text:ok"
+class TextModule(BaseModule):
+    name = "text"
+    commands = ["generate"]
+
+    def run(self, command, args):
+        if command == "generate":
+            return f"[TEXT] {args}"
+        return f"[text] Unknown command: {command}"
