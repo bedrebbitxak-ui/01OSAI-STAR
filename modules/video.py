@@ -1,5 +1,10 @@
-from core.utils import log
+from modules.base import BaseModule
 
-def process(data):
-    log("VIDEO MODULE: processing video data")
-    return "video:ok"
+class VideoModule(BaseModule):
+    name = "video"
+    commands = ["info"]
+
+    def run(self, command, args):
+        if command == "info":
+            return f"[VIDEO] info requested for: {args}"
+        return f"[video] Unknown command: {command}"
