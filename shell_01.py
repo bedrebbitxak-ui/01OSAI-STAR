@@ -1,37 +1,39 @@
-from core.utils import log
+import time
+from core.runner import Runner
+from intents.resolver import resolve
+from intents import basic
+
+def log(msg):
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
 
 class Shell01:
-    def __init__(self, osai):
-        self.osai = osai
-        log("SHELL_01: initialized")
+    def __init__(self, memory):
+        self.memory = memory
+        self.runner = Runner()
+        print("[SHELL_01] initialized")
 
-    def process(self, text: str) -> str:
-        """
-        Простейший обработчик текстовых команд.
-        """
-        t = text.strip().lower()
+    def run(self):
+        while True:
+            raw = input(">>> ")
+            log(f"01OSAI: input → {raw}")
+            self.memory.add(raw)
 
-        # базовые команды
-        if t in ["hi", "hello", "привет"]:
-            return "01OSAI-STAR online."
+            intent = resolve(raw)
 
-        if t == "help":
-            return (
-                "Commands:\n"
-                "  hi / hello — ping\n"
-                "  mem — show last memory entries\n"
-                "  run <code> — execute python code in sandbox\n"
-            )
+            if intent["intent"] == "PING":
+                response = basic.intent_ping()
 
-        if t == "mem":
-            last = self.osai.memory.last(5)
-            return "Last memory:\n" + "\n".join(last)
+            elif intent["intent"] == "HELP":
+                response = basic.intent_help()
 
-        # выполнение кода
-        if t.startswith("run "):
-            code = text[4:]
-            result = self.osai.execute(code)
-            return str(result)
+            elif intent["intent"] == "MEMORY":
+                response = basic.intent_memory(self.memory)
 
-        # fallback
-        return f"Echo: {text}"
+            elif intent["intent"] == "RUN":
+                response = basic.intent_run(self.runner, intent["payload"])
+
+            else:
+                response = basic.intent_echo(raw)
+
+            print(response)
+            self.memory.add(response)
