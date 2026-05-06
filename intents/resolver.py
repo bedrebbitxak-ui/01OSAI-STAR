@@ -1,16 +1,38 @@
 def resolve(text: str):
-    t = text.strip().lower()
+    t = text.strip()
 
-    if t in ("hi", "hello"):
-        return {"intent": "PING"}
+    # MODULE
+    if t.startswith("module "):
+        return {
+            "intent": "MODULE",
+            "payload": t[len("module "):].strip()
+        }
 
+    # RUN
+    if t.startswith("run "):
+        return {
+            "intent": "RUN",
+            "payload": t[4:].strip()
+        }
+
+    # HELP
     if t == "help":
         return {"intent": "HELP"}
 
+    # MEM
     if t == "mem":
         return {"intent": "MEMORY"}
 
-    if t.startswith("run "):
-        return {"intent": "RUN", "payload": text[4:]}
+    # PING
+    if t.lower() in ("hi", "hello", "ping"):
+        return {"intent": "PING"}
 
-    return {"intent": "ECHO", "payload": text}
+    # EXIT
+    if t in ("exit", "quit"):
+        return {"intent": "EXIT"}
+
+    # DEFAULT → ECHO
+    return {
+        "intent": "ECHO",
+        "payload": t
+    }
