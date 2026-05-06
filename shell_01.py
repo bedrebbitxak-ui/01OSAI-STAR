@@ -1,39 +1,59 @@
-import time
-from core.runner import Runner
 from intents.resolver import resolve
-from intents import basic
-
-def log(msg):
-    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}")
+from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module
 
 class Shell01:
-    def __init__(self, memory):
+    def __init__(self, memory, modules):
         self.memory = memory
-        self.runner = Runner()
-        print("[SHELL_01] initialized")
+        self.modules = modules
+        self.alive = True
 
     def run(self):
-        while True:
-            raw = input(">>> ")
-            log(f"01OSAI: input → {raw}")
-            self.memory.add(raw)
+        while self.alive:
+            try:
+                user_input = input(">>> ")
+                intent = resolve(user_input)
 
-            intent = resolve(raw)
+                itype = intent["intent"]
 
-            if intent["intent"] == "PING":
-                response = basic.intent_ping()
+                # EXIT
+                if itype == "EXIT":
+                    self.alive = False
+                    print("Goodbye.")
+                    continue
 
-            elif intent["intent"] == "HELP":
-                response = basic.intent_help()
+                # HELP
+                if itype == "HELP":
+                    print(intent_help())
+                    continue
 
-            elif intent["intent"] == "MEMORY":
-                response = basic.intent_memory(self.memory)
+                # MEMORY
+                if itype == "MEMORY":
+                    print(intent_memory(self.memory))
+                    continue
 
-            elif intent["intent"] == "RUN":
-                response = basic.intent_run(self.runner, intent["payload"])
+                # RUN
+                if itype == "RUN":
+                    print(intent_run(intent["payload"]))
+                    continue
 
-            else:
-                response = basic.intent_echo(raw)
+                # MODULE
+                if itype == "MODULE":
+                    result = intent_module(self.modules, intent["payload"])
+                    print(result)
+                    continue
 
-            print(response)
-            self.memory.add(response)
+                # ECHO (default)
+                if itype == "ECHO":
+                    print(intent_echo(intent["payload"]))
+                    continue
+
+                # PING
+                if itype == "PING":
+                    print("Pong.")
+                    continue
+
+            except KeyboardInterrupt:
+                print("\nInterrupted.")
+                self.alive = False
+            except Exception as e:
+                print(f"Shell error: {e}")
