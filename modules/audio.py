@@ -1,5 +1,10 @@
-from core.utils import log
+from modules.base import BaseModule
 
-def process(data):
-    log("AUDIO MODULE: processing audio data")
-    return "audio:ok"
+class AudioModule(BaseModule):
+    name = "audio"
+    commands = ["play"]
+
+    def run(self, command, args):
+        if command == "play":
+            return f"[AUDIO] playing: {args}"
+        return f"[audio] Unknown command: {command}"
