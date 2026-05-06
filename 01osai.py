@@ -12,11 +12,13 @@ def main():
 
     memory = Memory01()
     safety = Safety()
-    shell = Shell01(memory)
+
     loader = ModuleLoader()
 
     log("01OSAI: loading modules")
-    loader.load_modules()
+    modules = loader.load_modules()
+
+    shell = Shell01(memory, modules)
 
     log("01OSAI: system ready")
     log("01OSAI: interactive shell started")
