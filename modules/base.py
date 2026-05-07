@@ -1,18 +1,27 @@
-class BaseModule:
-    """
-    Базовый класс для всех модулей 01OSAI-STAR.
-    Каждый модуль должен определить:
-      - name (str)
-      - commands (list[str])
-      - run(command, args)
-      - info()
-    """
+from modules.base import BaseModule
 
-    name = "base"
-    commands = []
+
+class TextModule(BaseModule):
+    name = "text"
+    commands = ["generate", "upper", "lower", "info"]
 
     def run(self, command: str, args: str):
-        raise NotImplementedError("Module must implement run()")
+        command = command.lower()
+
+        if command == "generate":
+            return f"[text.generate] {args}"
+
+        if command == "upper":
+            return args.upper()
+
+        if command == "lower":
+            return args.lower()
+
+        if command == "info":
+            return self.info()
+
+        return f"Unknown command '{command}' for module '{self.name}'"
 
     def info(self):
-        return f"Module '{self.name}' with commands: {', '.join(self.commands)}"
+        return f"TextModule: commands = {', '.join(self.commands)}"
+
