@@ -1,8 +1,11 @@
 import time
 
-def log(*args):
+
+def log(msg: str):
     """
-    Простой логгер с таймстампом.
+    Стандартный логгер 01OSAI-STAR.
+    Формат:
+    [2026-05-07 04:12:33] MESSAGE
     """
-    ts = time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{ts}]", *args)
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{timestamp}] {msg}")
