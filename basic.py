@@ -10,6 +10,7 @@ def intent_help():
         "  mem — show last memory entries\n"
         "  run <code> — execute python code in sandbox\n"
         "  module <name> <command> [args] — call module\n"
+        "  agent ... — interact with agents\n"
         "  exit — quit shell\n"
     )
 
@@ -52,3 +53,35 @@ def intent_module(modules, payload):
         return result
     except Exception as e:
         return f"ModuleError: {e}"
+
+
+# 🟦 ← ДОБАВЛЕНО: intent_agent
+def intent_agent(shell, payload):
+    """
+    Команды:
+      agent list
+      agent use <name>
+      agent <text>  — отправить текст активному агенту
+    """
+
+    parts = payload.split(" ", 1)
+
+    # agent list
+    if parts[0] == "list":
+        return "Agents:\n" + "\n".join(shell.agents.keys())
+
+    # agent use <name>
+    if parts[0] == "use":
+        if len(parts) < 2:
+            return "Usage: agent use <name>"
+        name = parts[1]
+        if name not in shell.agents:
+            return f"Agent '{name}' not found"
+        shell.active_agent = shell.agents[name]
+        return f"Active agent: {name}"
+
+    # agent <text> — отправить текст активному агенту
+    if shell.active_agent is None:
+        return "No active agent. Use: agent use <name>"
+
+    return shell.active_agent.step(payload)
