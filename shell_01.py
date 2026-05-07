@@ -61,7 +61,7 @@ class Shell01:
                     continue
 
                 # ← ДОБАВЛЕНО: обработка AGENT
-                if itype == "AGENT":
+                elif itype == "AGENT":
                     result = intent_agent(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
