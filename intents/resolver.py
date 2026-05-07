@@ -34,9 +34,13 @@ def resolve(text: str):
     if t.lower() in ["ping", "hi", "hello", "привет"]:
         return {"intent": "PING", "payload": ""}
 
-    # AGENT  ← ДОБАВЛЕНО
+    # AGENT
     if t.lower().startswith("agent "):
         return {"intent": "AGENT", "payload": t[6:].strip()}
+
+    # CHAIN  ← ДОБАВЛЕНО
+    if t.lower().startswith("chain "):
+        return {"intent": "CHAIN", "payload": t[6:].strip()}
 
     # DEFAULT → ECHO
     return {"intent": "ECHO", "payload": t}
