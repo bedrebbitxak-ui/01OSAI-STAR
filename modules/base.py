@@ -1,22 +1,18 @@
 class BaseModule:
     """
-    Базовый интерфейс для всех модулей 01OSAI-STAR.
-    Каждый модуль обязан определить:
-      - name: имя модуля
-      - commands: список доступных команд
-      - run(command, args): обработка команды
-      - info(): описание модуля
+    Базовый класс для всех модулей 01OSAI-STAR.
+    Каждый модуль должен определить:
+      - name (str)
+      - commands (list[str])
+      - run(command, args)
+      - info()
     """
 
     name = "base"
     commands = []
 
-    def run(self, command, args):
+    def run(self, command: str, args: str):
         raise NotImplementedError("Module must implement run()")
 
     def info(self):
-        return {
-            "name": self.name,
-            "commands": self.commands,
-            "description": "No description provided"
-        }
+        return f"Module '{self.name}' with commands: {', '.join(self.commands)}"
