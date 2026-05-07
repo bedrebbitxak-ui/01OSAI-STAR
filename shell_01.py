@@ -1,6 +1,7 @@
 from intents.resolver import resolve
-from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module
+from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent
 from core.utils import log
+from agents import EchoAgent, MemoryAgent, PlannerAgent
 
 
 class Shell01:
@@ -8,6 +9,16 @@ class Shell01:
         self.memory = memory
         self.modules = modules
         self.alive = True
+
+        # ← ДОБАВЛЕНО: агенты
+        self.agents = {
+            "echo": EchoAgent(),
+            "memory": MemoryAgent(),
+            "planner": PlannerAgent(),
+        }
+        self.active_agent = None
+        # ← КОНЕЦ ДОБАВЛЕНИЯ
+
         log("SHELL_01: initialized")
 
     def run(self):
@@ -46,9 +57,16 @@ class Shell01:
                 if itype == "MODULE":
                     result = intent_module(self.modules, intent["payload"])
                     print(result)
-                    # сохраняем ответ
                     self.memory.store(result)
                     continue
+
+                # ← ДОБАВЛЕНО: обработка AGENT
+                if itype == "AGENT":
+                    result = intent_agent(self, intent["payload"])
+                    print(result)
+                    self.memory.store(result)
+                    continue
+                # ← КОНЕЦ ДОБАВЛЕНИЯ
 
                 if itype == "PING":
                     print("Pong.")
