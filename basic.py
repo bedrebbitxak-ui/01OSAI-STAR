@@ -1,86 +1,87 @@
-from intents.resolver import resolve
-from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent
 from core.utils import log
-from agents import EchoAgent, MemoryAgent, PlannerAgent
+from runner_01 import Runner01   # ← добавлено
+runner = Runner01()              # ← добавлено
 
 
-class Shell01:
-    def __init__(self, memory, modules):
-        self.memory = memory
-        self.modules = modules
-        self.alive = True
+def intent_help():
+    return (
+        "Commands:\n"
+        "  help — show this help\n"
+        "  mem — show last memory entries\n"
+        "  run <code> — execute python code in sandbox\n"
+        "  module <name> <command> [args] — call module\n"
+        "  agent ... — interact with agents\n"
+        "  exit — quit shell\n"
+    )
 
-        # ← ДОБАВЛЕНО: агенты
-        self.agents = {
-            "echo": EchoAgent(),
-            "memory": MemoryAgent(),
-            "planner": PlannerAgent(),
-        }
-        self.active_agent = None
-        # ← КОНЕЦ ДОБАВЛЕНИЯ
 
-        log("SHELL_01: initialized")
+def intent_echo(text):
+    return f"Echo: {text}"
 
-    def run(self):
-        while self.alive:
-            try:
-                user_input = input(">>> ")
 
-                # логируем вход
-                log(f"01OSAI: input → {user_input}")
+def intent_run(code):            # ← обновлено
+    res = runner.run(code)
+    if res["ok"]:
+        return f"RUN: {res['result']}"
+    else:
+        return f"RUN error: {res['error']}"
 
-                # сохраняем в память
-                self.memory.store(user_input)
 
-                # определяем intent
-                intent = resolve(user_input)
-                itype = intent["intent"]
+def intent_memory(memory):
+    last = memory.last(5)
+    return "Last memory:\n" + "\n".join(last)
 
-                # обработка intents
-                if itype == "EXIT":
-                    self.alive = False
-                    print("Goodbye.")
-                    continue
 
-                if itype == "HELP":
-                    print(intent_help())
-                    continue
+def intent_module(modules, payload):
+    """
+    payload: "text generate hello world"
+    """
+    parts = payload.split(" ", 2)
 
-                if itype == "MEMORY":
-                    print(intent_memory(self.memory))
-                    continue
+    if len(parts) < 2:
+        return "Usage: module <name> <command> [args]"
 
-                if itype == "RUN":
-                    print(intent_run(intent["payload"]))
-                    continue
+    name = parts[0]
+    command = parts[1]
+    args = parts[2] if len(parts) > 2 else ""
 
-                if itype == "MODULE":
-                    result = intent_module(self.modules, intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
+    if name not in modules:
+        return f"Module '{name}' not found"
 
-                # ← ДОБАВЛЕНО: обработка AGENT
-                if itype == "AGENT":
-                    result = intent_agent(self, intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
-                # ← КОНЕЦ ДОБАВЛЕНИЯ
+    try:
+        result = modules[name].run(command, args)
+        return result
+    except Exception as e:
+        return f"ModuleError: {e}"
 
-                if itype == "PING":
-                    print("Pong.")
-                    continue
 
-                if itype == "ECHO":
-                    result = intent_echo(intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
+# 🟦 ← ДОБАВЛЕНО: intent_agent
+def intent_agent(shell, payload):
+    """
+    Команды:
+      agent list
+      agent use <name>
+      agent <text>  — отправить текст активному агенту
+    """
 
-            except KeyboardInterrupt:
-                print("\nInterrupted.")
-                self.alive = False
+    parts = payload.split(" ", 1)
 
-            except Exception as e:
-                print(f"Shell error: {e}")
+    # agent list
+    if parts[0] == "list":
+        return "Agents:\n" + "\n".join(shell.agents.keys())
+
+    # agent use <name>
+    if parts[0] == "use":
+        if len(parts) < 2:
+            return "Usage: agent use <name>"
+        name = parts[1]
+        if name not in shell.agents:
+            return f"Agent '{name}' not found"
+        shell.active_agent = shell.agents[name]
+        return f"Active agent: {name}"
+
+    # agent <text> — отправить текст активному агенту
+    if shell.active_agent is None:
+        return "No active agent. Use: agent use <name>"
+
+    return shell.active_agent.step(payload)
