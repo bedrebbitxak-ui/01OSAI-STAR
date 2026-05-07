@@ -1,7 +1,8 @@
 from intents.resolver import resolve
-from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent
+from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent, intent_chain
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
+from chains import build_test_chain
 
 
 class Shell01:
@@ -17,6 +18,12 @@ class Shell01:
             "planner": PlannerAgent(),
         }
         self.active_agent = None
+        # ← КОНЕЦ ДОБАВЛЕНИЯ
+
+        # ← ДОБАВЛЕНО: цепочки
+        self.chains = {
+            "test": build_test_chain(),
+        }
         # ← КОНЕЦ ДОБАВЛЕНИЯ
 
         log("SHELL_01: initialized")
@@ -63,6 +70,14 @@ class Shell01:
                 # ← ДОБАВЛЕНО: обработка AGENT
                 elif itype == "AGENT":
                     result = intent_agent(self, intent["payload"])
+                    print(result)
+                    self.memory.store(result)
+                    continue
+                # ← КОНЕЦ ДОБАВЛЕНИЯ
+
+                # ← ДОБАВЛЕНО: обработка CHAIN
+                elif itype == "CHAIN":
+                    result = intent_chain(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
