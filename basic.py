@@ -11,6 +11,7 @@ def intent_help():
         "  run <code> — execute python code in sandbox\n"
         "  module <name> <command> [args] — call module\n"
         "  agent ... — interact with agents\n"
+        "  chain ... — run chains\n"
         "  exit — quit shell\n"
     )
 
@@ -85,3 +86,39 @@ def intent_agent(shell, payload):
         return "No active agent. Use: agent use <name>"
 
     return shell.active_agent.step(payload)
+
+
+# 🟩 ← ДОБАВЛЕНО: intent_chain
+def intent_chain(shell, payload):
+    """
+    Команды:
+      chain list
+      chain run <name> <text>
+    """
+
+    parts = payload.split(" ", 1)
+
+    # chain list
+    if parts[0] == "list":
+        return "Chains:\n" + "\n".join(shell.chains.keys())
+
+    # chain run <name> <text>
+    if parts[0] == "run":
+        if len(parts) < 2:
+            return "Usage: chain run <name> <text>"
+
+        # Разделяем: <name> <text>
+        try:
+            name, text = parts[1].split(" ", 1)
+        except ValueError:
+            return "Usage: chain run <name> <text>"
+
+        if name not in shell.chains:
+            return f"Chain '{name}' not found"
+
+        ctx = {"text": text}
+        result = shell.chains[name].run(ctx)
+
+        return f"[chain:{name}] {result['text']}"
+
+    return "Unknown chain command"
