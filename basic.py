@@ -1,4 +1,6 @@
 from core.utils import log
+from runner_01 import Runner01   # ← добавлено
+runner = Runner01()              # ← добавлено
 
 
 def intent_help():
@@ -16,13 +18,12 @@ def intent_echo(text):
     return f"Echo: {text}"
 
 
-def intent_run(code):
-    try:
-        # опасный eval — но это песочница v3, позже заменим на runner
-        result = eval(code, {"__builtins__": {}})
-        return f"RUN: {result}"
-    except Exception as e:
-        return f"RUN error: {e}"
+def intent_run(code):            # ← обновлено
+    res = runner.run(code)
+    if res["ok"]:
+        return f"RUN: {res['result']}"
+    else:
+        return f"RUN error: {res['error']}"
 
 
 def intent_memory(memory):
