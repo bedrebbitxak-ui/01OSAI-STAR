@@ -9,7 +9,8 @@ from router import AutoRouter
 from osai_bridge import OSAIBridge
 from semantic_memory import SemanticMemory
 from capabilities import Capabilities
-from auto_tools import AutoTools     # ← ДОБАВЛЕНО
+from auto_tools import AutoTools
+from auto_chains import AutoChains     # ← ДОБАВЛЕНО
 
 
 class Shell01:
@@ -43,7 +44,10 @@ class Shell01:
         self.capabilities = Capabilities(self)
 
         # ← AUTO‑TOOLS v1
-        self.auto = AutoTools(self)     # ← ДОБАВЛЕНО
+        self.auto = AutoTools(self)
+
+        # ← AUTO‑CHAINS v1
+        self.autochain = AutoChains(self)     # ← ДОБАВЛЕНО
 
         # ← АВТО‑РОУТЕР
         self.router = AutoRouter(self)
