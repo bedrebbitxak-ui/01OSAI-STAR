@@ -3,6 +3,7 @@ from basic import intent_help, intent_echo, intent_run, intent_memory, intent_mo
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
 from chains import build_test_chain
+from router import AutoRouter   # ← ДОБАВЛЕНО
 
 
 class Shell01:
@@ -26,6 +27,10 @@ class Shell01:
         }
         # ← КОНЕЦ ДОБАВЛЕНИЯ
 
+        # ← ДОБАВЛЕНО: авто‑роутер
+        self.router = AutoRouter(self)
+        # ← КОНЕЦ ДОБАВЛЕНИЯ
+
         log("SHELL_01: initialized")
 
     def run(self):
@@ -39,8 +44,14 @@ class Shell01:
                 # сохраняем в память
                 self.memory.store(user_input)
 
-                # определяем intent
-                intent = resolve(user_input)
+                # ← ДОБАВЛЕНО: авто‑роутинг
+                routed = self.router.route(user_input)
+                if routed is not None:
+                    intent = routed
+                else:
+                    intent = resolve(user_input)
+                # ← КОНЕЦ ДОБАВЛЕНИЯ
+
                 itype = intent["intent"]
 
                 # обработка intents
