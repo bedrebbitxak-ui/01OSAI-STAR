@@ -12,6 +12,7 @@ def intent_help():
         "  module <name> <command> [args] — call module\n"
         "  agent ... — interact with agents\n"
         "  chain ... — run chains\n"
+        "  ai ... — ask LLM\n"
         "  exit — quit shell\n"
     )
 
@@ -122,3 +123,11 @@ def intent_chain(shell, payload):
         return f"[chain:{name}] {result['text']}"
 
     return "Unknown chain command"
+
+
+# 🟦 ← ДОБАВЛЕНО: intent_llm
+def intent_llm(shell, payload):
+    """
+    Отправляет запрос в OSAI‑Bridge (LLM).
+    """
+    return shell.osai.run(payload)
