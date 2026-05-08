@@ -1,121 +1,38 @@
-from intents.resolver import resolve
-from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent, intent_chain, intent_llm
-from core.utils import log
-from agents import EchoAgent, MemoryAgent, PlannerAgent
-from chains import build_test_chain
-from chains_v2 import build_reason_chain, build_reason_audio_chain
-from router import AutoRouter
-from osai_bridge import OSAIBridge
-from semantic_memory import SemanticMemory   # ← ДОБАВЛЕНО
+# intents/intent_semantic.py
 
+def intent_semantic(shell, payload):
+    """
+    Команды:
+      sem add <text>   — извлечь факт из текста и сохранить
+      sem fact <text>  — сохранить факт напрямую
+      sem list         — показать факты
+      sem ask <q>      — ответить на вопрос на основе фактов
+    """
 
-class Shell01:
-    def __init__(self, memory, modules):
-        self.memory = memory
-        self.modules = modules
-        self.alive = True
+    parts = payload.split(" ", 1)
+    cmd = parts[0]
 
-        # ← OSAI‑BRIDGE
-        self.osai = OSAIBridge(self.memory)
+    # sem list
+    if cmd == "list":
+        return shell.semantic.list_facts()
 
-        # ← SEMANTIC MEMORY v1
-        self.semantic = SemanticMemory(self.osai)
+    # sem add <text>
+    if cmd == "add":
+        if len(parts) < 2:
+            return "Usage: sem add <text>"
+        return shell.semantic.add_fact_from_text(parts[1])
 
-        # ← АГЕНТЫ
-        self.agents = {
-            "echo": EchoAgent(),
-            "memory": MemoryAgent(),
-            "planner": PlannerAgent(),
-        }
-        self.active_agent = None
+    # sem fact <text>
+    if cmd == "fact":
+        if len(parts) < 2:
+            return "Usage: sem fact <text>"
+        return shell.semantic.add_fact(parts[1])
 
-        # ← ЦЕПОЧКИ (v1 + v2)
-        self.chains = {
-            "test": build_test_chain(),
-            "reason": build_reason_chain(),
-            "reason_audio": build_reason_audio_chain(),
-        }
+    # sem ask <question>
+    if cmd == "ask":
+        if len(parts) < 2:
+            return "Usage: sem ask <question>"
+        return shell.semantic.query(parts[1])
 
-        # ← АВТО‑РОУТЕР
-        self.router = AutoRouter(self)
+    return "Unknown semantic command"
 
-        log("SHELL_01: initialized")
-
-    def run(self):
-        while self.alive:
-            try:
-                user_input = input(">>> ")
-
-                log(f"01OSAI: input → {user_input}")
-
-                self.memory.store(user_input)
-
-                routed = self.router.route(user_input)
-                if routed is not None:
-                    intent = routed
-                else:
-                    intent = resolve(user_input)
-
-                itype = intent["intent"]
-
-                # ---------------------------------------------------------
-                # INTENTS
-                # ---------------------------------------------------------
-
-                if itype == "EXIT":
-                    self.alive = False
-                    print("Goodbye.")
-                    continue
-
-                if itype == "HELP":
-                    print(intent_help())
-                    continue
-
-                if itype == "MEMORY":
-                    print(intent_memory(self.memory))
-                    continue
-
-                if itype == "RUN":
-                    print(intent_run(intent["payload"]))
-                    continue
-
-                if itype == "MODULE":
-                    result = intent_module(self.modules, intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
-
-                elif itype == "AGENT":
-                    result = intent_agent(self, intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
-
-                elif itype == "CHAIN":
-                    result = intent_chain(self, intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
-
-                elif itype == "LLM":
-                    result = intent_llm(self, intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
-
-                if itype == "PING":
-                    print("Pong.")
-                    continue
-
-                if itype == "ECHO":
-                    result = intent_echo(intent["payload"])
-                    print(result)
-                    self.memory.store(result)
-                    continue
-
-            except KeyboardInterrupt:
-                print("\nInterrupted.")
-                self.alive = False
-
-            except Exception as e:
-                print(f"Shell error: {e}")
