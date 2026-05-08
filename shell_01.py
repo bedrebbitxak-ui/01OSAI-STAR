@@ -1,9 +1,10 @@
 from intents.resolver import resolve
-from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent, intent_chain
+from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent, intent_chain, intent_llm
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
 from chains import build_test_chain
-from router import AutoRouter   # ← ДОБАВЛЕНО
+from router import AutoRouter
+from osai_bridge import OSAIBridge   # ← ДОБАВЛЕНО
 
 
 class Shell01:
@@ -29,6 +30,10 @@ class Shell01:
 
         # ← ДОБАВЛЕНО: авто‑роутер
         self.router = AutoRouter(self)
+        # ← КОНЕЦ ДОБАВЛЕНИЯ
+
+        # ← ДОБАВЛЕНО: OSAI‑Bridge
+        self.osai = OSAIBridge(self.memory)
         # ← КОНЕЦ ДОБАВЛЕНИЯ
 
         log("SHELL_01: initialized")
@@ -89,6 +94,14 @@ class Shell01:
                 # ← ДОБАВЛЕНО: обработка CHAIN
                 elif itype == "CHAIN":
                     result = intent_chain(self, intent["payload"])
+                    print(result)
+                    self.memory.store(result)
+                    continue
+                # ← КОНЕЦ ДОБАВЛЕНИЯ
+
+                # ← ДОБАВЛЕНО: обработка LLM
+                elif itype == "LLM":
+                    result = intent_llm(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
