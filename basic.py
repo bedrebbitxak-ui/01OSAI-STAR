@@ -57,7 +57,7 @@ def intent_module(modules, payload):
         return f"ModuleError: {e}"
 
 
-# 🟦 ← ДОБАВЛЕНО: intent_agent
+# 🟦 ← ОБНОВЛЕНО: intent_agent
 def intent_agent(shell, payload):
     """
     Команды:
@@ -79,7 +79,12 @@ def intent_agent(shell, payload):
         name = parts[1]
         if name not in shell.agents:
             return f"Agent '{name}' not found"
+
         shell.active_agent = shell.agents[name]
+
+        # ← ДОБАВЛЕНО: передаём shell внутрь агента
+        shell.active_agent.state["shell"] = shell
+
         return f"Active agent: {name}"
 
     # agent <text> — отправить текст активному агенту
@@ -89,7 +94,7 @@ def intent_agent(shell, payload):
     return shell.active_agent.step(payload)
 
 
-# 🟩 ← ДОБАВЛЕНО: intent_chain
+# 🟩 ← intent_chain
 def intent_chain(shell, payload):
     """
     Команды:
@@ -108,7 +113,6 @@ def intent_chain(shell, payload):
         if len(parts) < 2:
             return "Usage: chain run <name> <text>"
 
-        # Разделяем: <name> <text>
         try:
             name, text = parts[1].split(" ", 1)
         except ValueError:
@@ -125,7 +129,7 @@ def intent_chain(shell, payload):
     return "Unknown chain command"
 
 
-# 🟦 ← ДОБАВЛЕНО: intent_llm
+# 🟦 ← intent_llm
 def intent_llm(shell, payload):
     """
     Отправляет запрос в OSAI‑Bridge (LLM).
