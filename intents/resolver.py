@@ -38,9 +38,13 @@ def resolve(text: str):
     if t.lower().startswith("agent "):
         return {"intent": "AGENT", "payload": t[6:].strip()}
 
-    # CHAIN  ← ДОБАВЛЕНО
+    # CHAIN
     if t.lower().startswith("chain "):
         return {"intent": "CHAIN", "payload": t[6:].strip()}
+
+    # LLM  ← ДОБАВЛЕНО
+    if t.lower().startswith("ai "):
+        return {"intent": "LLM", "payload": t[3:].strip()}
 
     # DEFAULT → ECHO
     return {"intent": "ECHO", "payload": t}
