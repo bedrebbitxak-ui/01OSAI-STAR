@@ -2,6 +2,7 @@
 # Chains v2 — LLM‑reasoning цепочки
 
 from core.utils import log
+import re
 
 
 # ---------------------------------------------------------
@@ -89,6 +90,27 @@ class IfStep(ChainStep):
 
 
 # ---------------------------------------------------------
+# MODULE STEP — вызов module.<name>.run(...)
+# ---------------------------------------------------------
+
+class ModuleStep(ChainStep):
+    def __init__(self, module_name: str, command: str, args_template: str):
+        self.module_name = module_name
+        self.command = command
+        self.args_template = args_template
+
+    def run(self, ctx, shell):
+        if self.module_name not in shell.modules:
+            ctx["text"] = f"[module:{self.module_name}] not found"
+            return ctx
+
+        args = self.args_template.format(**ctx)
+        result = shell.modules[self.module_name].run(self.command, args)
+        ctx["text"] = result
+        return ctx
+
+
+# ---------------------------------------------------------
 # CHAIN
 # ---------------------------------------------------------
 
@@ -103,13 +125,67 @@ class Chain:
 
 
 # ---------------------------------------------------------
-# ПРИМЕР ЦЕПОЧКИ v2
+# ПРИМЕР ЦЕПОЧКИ v2 (reason)
 # ---------------------------------------------------------
 
 def build_reason_chain():
     return Chain([
         LLMStep("Сформулируй краткое описание задачи: {text}"),
-        SlotSetStep("last_summary", "{text}"),
+        SlotSetStep("last_summary", "{text}",
+        ),
         LLMStep("Теперь сделай план из 3 шагов для: {text}"),
         PythonStep(lambda ctx: {**ctx, "text": ctx["text"].upper()}),
+    ])
+
+
+# ---------------------------------------------------------
+# reason_audio_chain — LLM → парсинг → AudioModule.convert
+# ---------------------------------------------------------
+
+def _parse_input_output(ctx: dict) -> dict:
+    """
+    Ожидает в ctx["text"] ответ вида:
+      INPUT=<имя_входного_файла>
+      OUTPUT=<имя_выходного_файла>
+    и кладёт:
+      ctx["input_file"], ctx["output_file"]
+    """
+    text = ctx.get("text", "")
+    input_file = None
+    output_file = None
+
+    m_in = re.search(r"INPUT\s*=\s*(.+)", text)
+    m_out = re.search(r"OUTPUT\s*=\s*(.+)", text)
+
+    if m_in:
+        input_file = m_in.group(1).strip()
+    if m_out:
+        output_file = m_out.group(1).strip()
+
+    ctx["input_file"] = input_file
+    ctx["output_file"] = output_file
+
+    if not input_file or not output_file:
+        ctx["text"] = "[reason_audio] parse error: expected INPUT=... and OUTPUT=..."
+    else:
+        ctx["text"] = f"[reason_audio] parsed: {input_file} → {output_file}"
+
+    return ctx
+
+
+def build_reason_audio_chain():
+    """
+    Пример:
+      chain run reason_audio "конвертируй voice.wma в voice.ogg"
+    """
+    return Chain([
+        LLMStep(
+            "Из запроса определи имена входного и выходного файлов для аудио-конвертации.\n"
+            "Ответь строго в формате:\n"
+            "INPUT=<имя_входного_файла>\n"
+            "OUTPUT=<имя_выходного_файла>\n\n"
+            "Запрос: {text}"
+        ),
+        PythonStep(_parse_input_output),
+        ModuleStep("audio", "convert", "{input_file} {output_file}"),
     ])
