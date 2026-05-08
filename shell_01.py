@@ -3,7 +3,7 @@ from basic import intent_help, intent_echo, intent_run, intent_memory, intent_mo
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
 from chains import build_test_chain
-from chains_v2 import build_reason_chain      # ← ДОБАВЛЕНО
+from chains_v2 import build_reason_chain, build_reason_audio_chain   # ← ДОБАВЛЕНО
 from router import AutoRouter
 from osai_bridge import OSAIBridge
 
@@ -25,7 +25,8 @@ class Shell01:
         # ← ЦЕПОЧКИ (v1 + v2)
         self.chains = {
             "test": build_test_chain(),
-            "reason": build_reason_chain(),     # ← ДОБАВЛЕНО
+            "reason": build_reason_chain(),
+            "reason_audio": build_reason_audio_chain(),   # ← ДОБАВЛЕНО
         }
 
         # ← АВТО‑РОУТЕР
@@ -88,9 +89,8 @@ class Shell01:
                     self.memory.store(result)
                     continue
 
-                # ← CHAIN (обновлено для Chains v2)
+                # ← CHAIN (v1 + v2)
                 elif itype == "CHAIN":
-                    # intent_chain сам вызывает chain.run(ctx, shell)
                     result = intent_chain(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
