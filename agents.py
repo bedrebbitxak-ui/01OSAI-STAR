@@ -45,11 +45,15 @@ class MemoryAgent(BaseAgent):
         return f"[memory] stored: {text}"
 
 
-# 🟩 PlannerAgent v2 — LLM‑планировщик
 class PlannerAgent(BaseAgent):
     """
-    Агент‑планировщик v2.
-    Использует OSAI‑Bridge (LLM) для генерации плана.
+    PlannerAgent v3.
+    Планировщик, который строит план, опираясь на Capabilities v1:
+      - semantic memory
+      - modules (tools)
+      - agents
+      - chains
+      - llm
     """
 
     def __init__(self):
@@ -57,30 +61,40 @@ class PlannerAgent(BaseAgent):
         self.state["last_plan"] = None
 
     def step(self, text: str) -> str:
-        """
-        Формирует структурированный план через LLM.
-        """
-
-        # shell передаётся в intent_agent → shell.active_agent.step(payload)
-        # поэтому shell доступен через self.state["shell"]
         shell = self.state.get("shell")
         if shell is None:
-            return "[planner] ERROR: shell not attached"
+            return "[planner.v3] ERROR: shell not attached"
 
-        # Формируем запрос к LLM
+        if not hasattr(shell, "capabilities"):
+            return "[planner.v3] ERROR: capabilities not available"
+
+        caps = shell.capabilities.list()
+
+        modules = ", ".join(caps["modules"]) if caps["modules"] else "-"
+        agents = ", ".join(caps["agents"]) if caps["agents"] else "-"
+        chains = ", ".join(caps["chains"]) if caps["chains"] else "-"
+        facts_count = len(caps["semantic"])
+
         prompt = (
-            "Сформируй чёткий, структурированный план действий.\n"
-            "Формат:\n"
-            "1. ...\n"
-            "2. ...\n"
-            "3. ...\n\n"
+            "Ты — планировщик действий внутри локальной системы 01OSAI.\n"
+            "У тебя есть следующие возможности:\n"
+            f"- Модули (tools): {modules}\n"
+            f"- Агенты: {agents}\n"
+            f"- Цепочки (chains): {chains}\n"
+            f"- Семантическая память: {facts_count} фактов\n"
+            "- LLM (OSAI-Bridge): прямые ответы и рассуждения\n\n"
+            "Сформируй план решения задачи, используя эти возможности.\n"
+            "Формат плана:\n"
+            "1) Краткое описание шага\n"
+            "   tool: <module|agent|chain|semantic|llm>\n"
+            "   name: <имя модуля/агента/цепочки или '-'>\n"
+            "   input: <что подать на вход>\n\n"
             f"Задача: {text}"
         )
 
-        log("[planner] sending to LLM")
+        log("[planner.v3] building plan via LLM")
         answer = shell.osai.run(prompt)
 
-        # сохраняем план
         self.state["last_plan"] = answer
 
-        return f"[planner]\n{answer}"
+        return "[planner.v3]\n" + answer
