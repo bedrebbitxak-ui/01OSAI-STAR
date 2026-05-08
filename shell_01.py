@@ -3,9 +3,10 @@ from basic import intent_help, intent_echo, intent_run, intent_memory, intent_mo
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
 from chains import build_test_chain
-from chains_v2 import build_reason_chain, build_reason_audio_chain   # ← ДОБАВЛЕНО
+from chains_v2 import build_reason_chain, build_reason_audio_chain
 from router import AutoRouter
 from osai_bridge import OSAIBridge
+from semantic_memory import SemanticMemory   # ← ДОБАВЛЕНО
 
 
 class Shell01:
@@ -13,6 +14,12 @@ class Shell01:
         self.memory = memory
         self.modules = modules
         self.alive = True
+
+        # ← OSAI‑BRIDGE
+        self.osai = OSAIBridge(self.memory)
+
+        # ← SEMANTIC MEMORY v1
+        self.semantic = SemanticMemory(self.osai)
 
         # ← АГЕНТЫ
         self.agents = {
@@ -26,14 +33,11 @@ class Shell01:
         self.chains = {
             "test": build_test_chain(),
             "reason": build_reason_chain(),
-            "reason_audio": build_reason_audio_chain(),   # ← ДОБАВЛЕНО
+            "reason_audio": build_reason_audio_chain(),
         }
 
         # ← АВТО‑РОУТЕР
         self.router = AutoRouter(self)
-
-        # ← OSAI‑BRIDGE
-        self.osai = OSAIBridge(self.memory)
 
         log("SHELL_01: initialized")
 
@@ -46,7 +50,6 @@ class Shell01:
 
                 self.memory.store(user_input)
 
-                # ← АВТО‑РОУТИНГ
                 routed = self.router.route(user_input)
                 if routed is not None:
                     intent = routed
@@ -82,28 +85,23 @@ class Shell01:
                     self.memory.store(result)
                     continue
 
-                # ← AGENT
                 elif itype == "AGENT":
                     result = intent_agent(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
 
-                # ← CHAIN (v1 + v2)
                 elif itype == "CHAIN":
                     result = intent_chain(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
 
-                # ← LLM
                 elif itype == "LLM":
                     result = intent_llm(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
-
-                # ---------------------------------------------------------
 
                 if itype == "PING":
                     print("Pong.")
