@@ -1,6 +1,6 @@
 from intents.resolver import resolve
 from basic import intent_help, intent_echo, intent_run, intent_memory, intent_module, intent_agent, intent_chain, intent_llm
-from intents.intent_semantic import intent_semantic      # ← ДОБАВЛЕНО
+from intents.intent_semantic import intent_semantic
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
 from chains import build_test_chain
@@ -8,6 +8,7 @@ from chains_v2 import build_reason_chain, build_reason_audio_chain
 from router import AutoRouter
 from osai_bridge import OSAIBridge
 from semantic_memory import SemanticMemory
+from capabilities import Capabilities     # ← ДОБАВЛЕНО
 
 
 class Shell01:
@@ -36,6 +37,9 @@ class Shell01:
             "reason": build_reason_chain(),
             "reason_audio": build_reason_audio_chain(),
         }
+
+        # ← CAPABILITIES v1
+        self.capabilities = Capabilities(self)     # ← ДОБАВЛЕНО
 
         # ← АВТО‑РОУТЕР
         self.router = AutoRouter(self)
@@ -104,7 +108,6 @@ class Shell01:
                     self.memory.store(result)
                     continue
 
-                # ← SEMANTIC MEMORY
                 elif itype == "SEM":
                     result = intent_semantic(self, intent["payload"])
                     print(result)
