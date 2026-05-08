@@ -8,7 +8,8 @@ from chains_v2 import build_reason_chain, build_reason_audio_chain
 from router import AutoRouter
 from osai_bridge import OSAIBridge
 from semantic_memory import SemanticMemory
-from capabilities import Capabilities     # ← ДОБАВЛЕНО
+from capabilities import Capabilities
+from auto_tools import AutoTools     # ← ДОБАВЛЕНО
 
 
 class Shell01:
@@ -39,7 +40,10 @@ class Shell01:
         }
 
         # ← CAPABILITIES v1
-        self.capabilities = Capabilities(self)     # ← ДОБАВЛЕНО
+        self.capabilities = Capabilities(self)
+
+        # ← AUTO‑TOOLS v1
+        self.auto = AutoTools(self)     # ← ДОБАВЛЕНО
 
         # ← АВТО‑РОУТЕР
         self.router = AutoRouter(self)
