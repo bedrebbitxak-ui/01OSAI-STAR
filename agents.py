@@ -45,16 +45,42 @@ class MemoryAgent(BaseAgent):
         return f"[memory] stored: {text}"
 
 
+# 🟩 PlannerAgent v2 — LLM‑планировщик
 class PlannerAgent(BaseAgent):
     """
-    Агент-планировщик.
-    Простейшая версия: разбивает задачу на шаги.
+    Агент‑планировщик v2.
+    Использует OSAI‑Bridge (LLM) для генерации плана.
     """
 
     def __init__(self):
         super().__init__("planner")
+        self.state["last_plan"] = None
 
     def step(self, text: str) -> str:
-        steps = text.split(".")
-        numbered = [f"{i+1}. {s.strip()}" for i, s in enumerate(steps) if s.strip()]
-        return "[planner]\n" + "\n".join(numbered)
+        """
+        Формирует структурированный план через LLM.
+        """
+
+        # shell передаётся в intent_agent → shell.active_agent.step(payload)
+        # поэтому shell доступен через self.state["shell"]
+        shell = self.state.get("shell")
+        if shell is None:
+            return "[planner] ERROR: shell not attached"
+
+        # Формируем запрос к LLM
+        prompt = (
+            "Сформируй чёткий, структурированный план действий.\n"
+            "Формат:\n"
+            "1. ...\n"
+            "2. ...\n"
+            "3. ...\n\n"
+            f"Задача: {text}"
+        )
+
+        log("[planner] sending to LLM")
+        answer = shell.osai.run(prompt)
+
+        # сохраняем план
+        self.state["last_plan"] = answer
+
+        return f"[planner]\n{answer}"
