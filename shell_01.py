@@ -3,8 +3,9 @@ from basic import intent_help, intent_echo, intent_run, intent_memory, intent_mo
 from core.utils import log
 from agents import EchoAgent, MemoryAgent, PlannerAgent
 from chains import build_test_chain
+from chains_v2 import build_reason_chain      # ← ДОБАВЛЕНО
 from router import AutoRouter
-from osai_bridge import OSAIBridge   # ← ДОБАВЛЕНО
+from osai_bridge import OSAIBridge
 
 
 class Shell01:
@@ -13,28 +14,25 @@ class Shell01:
         self.modules = modules
         self.alive = True
 
-        # ← ДОБАВЛЕНО: агенты
+        # ← АГЕНТЫ
         self.agents = {
             "echo": EchoAgent(),
             "memory": MemoryAgent(),
             "planner": PlannerAgent(),
         }
         self.active_agent = None
-        # ← КОНЕЦ ДОБАВЛЕНИЯ
 
-        # ← ДОБАВЛЕНО: цепочки
+        # ← ЦЕПОЧКИ (v1 + v2)
         self.chains = {
             "test": build_test_chain(),
+            "reason": build_reason_chain(),     # ← ДОБАВЛЕНО
         }
-        # ← КОНЕЦ ДОБАВЛЕНИЯ
 
-        # ← ДОБАВЛЕНО: авто‑роутер
+        # ← АВТО‑РОУТЕР
         self.router = AutoRouter(self)
-        # ← КОНЕЦ ДОБАВЛЕНИЯ
 
-        # ← ДОБАВЛЕНО: OSAI‑Bridge
+        # ← OSAI‑BRIDGE
         self.osai = OSAIBridge(self.memory)
-        # ← КОНЕЦ ДОБАВЛЕНИЯ
 
         log("SHELL_01: initialized")
 
@@ -43,23 +41,23 @@ class Shell01:
             try:
                 user_input = input(">>> ")
 
-                # логируем вход
                 log(f"01OSAI: input → {user_input}")
 
-                # сохраняем в память
                 self.memory.store(user_input)
 
-                # ← ДОБАВЛЕНО: авто‑роутинг
+                # ← АВТО‑РОУТИНГ
                 routed = self.router.route(user_input)
                 if routed is not None:
                     intent = routed
                 else:
                     intent = resolve(user_input)
-                # ← КОНЕЦ ДОБАВЛЕНИЯ
 
                 itype = intent["intent"]
 
-                # обработка intents
+                # ---------------------------------------------------------
+                # INTENTS
+                # ---------------------------------------------------------
+
                 if itype == "EXIT":
                     self.alive = False
                     print("Goodbye.")
@@ -83,29 +81,29 @@ class Shell01:
                     self.memory.store(result)
                     continue
 
-                # ← ДОБАВЛЕНО: обработка AGENT
+                # ← AGENT
                 elif itype == "AGENT":
                     result = intent_agent(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
-                # ← КОНЕЦ ДОБАВЛЕНИЯ
 
-                # ← ДОБАВЛЕНО: обработка CHAIN
+                # ← CHAIN (обновлено для Chains v2)
                 elif itype == "CHAIN":
+                    # intent_chain сам вызывает chain.run(ctx, shell)
                     result = intent_chain(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
-                # ← КОНЕЦ ДОБАВЛЕНИЯ
 
-                # ← ДОБАВЛЕНО: обработка LLM
+                # ← LLM
                 elif itype == "LLM":
                     result = intent_llm(self, intent["payload"])
                     print(result)
                     self.memory.store(result)
                     continue
-                # ← КОНЕЦ ДОБАВЛЕНИЯ
+
+                # ---------------------------------------------------------
 
                 if itype == "PING":
                     print("Pong.")
