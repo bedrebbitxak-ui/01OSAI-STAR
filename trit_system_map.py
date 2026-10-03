@@ -1,66 +1,49 @@
-# 01OSAI-STAR-TRIT98 — Trit System Map
-# Единая карта тритовой архитектуры: структура, связи, слои, состояние
+# 01OSAI-STAR-TRIT98 — Trit System Map (REBUILD)
+# Полная карта TRIT98: ядро, origin-слой, системный слой, вселенные
 
-from trit_topology import TritTopology
-from trit_memory import TritMemory
-from trit_flow import TritFlow
-from trit_field import TritField
-from trit_wave import TritWave
-from trit_resonance import TritResonance
-from trit_phase import TritPhase
-from trit_state import TritState
-from trit_graph import TritGraph
-from trit_matrix import TritMatrix
+from trit_system_core import TritSystemCore
+from trit_system_flow import TritSystemFlow
+from trit_system_field import TritSystemField
+from trit_system_wave import TritSystemWave
+from trit_system_resonance import TritSystemResonance
+from trit_system_phase import TritSystemPhase
+from trit_system_state import TritSystemState
+from trit_system_universe import TritSystemUniverse
+from trit_system_multiverse import TritSystemMultiverse
 
 class TritSystemMap:
     def __init__(self):
-        self.topology = TritTopology()
-        self.memory = TritMemory()
-        self.flow = TritFlow()
-        self.field = TritField()
-        self.wave = TritWave()
-        self.resonance = TritResonance()
-        self.phase = TritPhase()
-        self.state = TritState()
-        self.graph = TritGraph()
-        self.matrix = TritMatrix()
+        self.core = TritSystemCore()
+        self.flow = TritSystemFlow()
+        self.field = TritSystemField()
+        self.wave = TritSystemWave()
+        self.resonance = TritSystemResonance()
+        self.phase = TritSystemPhase()
+        self.state = TritSystemState()
+        self.universe = TritSystemUniverse()
+        self.multiverse = TritSystemMultiverse()
 
-    def build_map(self):
+    def build(self):
         """
-        Построение полной карты TRIT98:
-        - топология
-        - память
-        - потоки
-        - поле
-        - волны
-        - резонанс
-        - фаза
-        - состояние
-        - граф
-        - матрица
+        Построение полной карты TRIT98.
         """
         return {
-            "topology": self.topology.snapshot(),
-            "memory": self.memory.topology.snapshot(),
+            "core": self.core.snapshot(),
             "flow": self.flow.snapshot(),
             "field": self.field.snapshot(),
             "wave": self.wave.snapshot(),
             "resonance": self.resonance.snapshot(),
             "phase": self.phase.snapshot(),
             "state": self.state.snapshot(),
-            "graph": self.graph.snapshot(),
-            "matrix": self.matrix.snapshot()
+            "universe": self.universe.snapshot(),
+            "multiverse": self.multiverse.snapshot()
         }
 
     def snapshot(self):
-        """
-        Снимок карты TRIT98.
-        """
-        return self.build_map()
+        return self.build()
 
 
 if __name__ == "__main__":
-    sm = TritSystemMap()
-
+    tsm = TritSystemMap()
     print("=== TRIT SYSTEM MAP ===")
-    print(sm.snapshot())
+    print(tsm.snapshot())
