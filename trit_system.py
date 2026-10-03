@@ -1,60 +1,74 @@
 # 01OSAI-STAR-TRIT98 — Trit System
-# Финальный сборщик: связывает TRIT98 с обычным 01OSAI-STAR
+# Единая системная модель TRIT98: интеграция всех слоёв в один организм
 
-from trit_core import TritCore
-from trit_shell import TritShell
+from trit_root import TritRoot
+from trit_identity import TritIdentity
+from trit_manifest import TritManifest
+
+from trit_origin_system import TritOriginSystem
+from trit_origin_universe import TritOriginUniverse
+from trit_origin_multiverse import TritOriginMultiverse
 
 class TritSystem:
     def __init__(self):
-        self.core = TritCore()
-        self.shell = TritShell()
+        # Корневые слои
+        self.root = TritRoot()
+        self.identity = TritIdentity()
+        self.manifest = TritManifest()
 
-    def trit_cycle(self):
-        """
-        Запустить полный трит-цикл (маршрутизация + исполнение + снимок).
-        """
-        return self.core.cycle()
+        # Origin-слой
+        self.origin_system = TritOriginSystem()
+        self.origin_universe = TritOriginUniverse()
+        self.origin_multiverse = TritOriginMultiverse()
 
-    def trit_auto_cycle(self):
-        """
-        Запустить автоматический трит-цикл.
-        """
-        return self.core.auto_cycle()
+        # История системных состояний
+        self.history = []
 
-    def trit_snapshot(self):
+    def update(self):
         """
-        Получить полный снимок тритовой архитектуры.
+        Полное обновление TRIT98:
+        1) обновить корень
+        2) обновить идентичность
+        3) обновить манифест
+        4) обновить origin-систему
+        5) расширить origin-вселенную
+        6) обновить origin-мультивселенную
         """
-        return self.core.snapshot()
+        root_snap = self.root.pulse()
+        identity_snap = self.identity.update()
+        manifest_snap = self.manifest.generate()
 
-    def trit_export_binary(self):
-        """
-        Экспорт тритовой системы в бинарную карту.
-        """
-        return self.core.export_binary()
+        origin_sys = self.origin_system.update()
+        origin_uni = self.origin_universe.expand()
+        origin_multi = self.origin_multiverse.spawn()
 
-    def trit_import_binary(self, binary_map):
-        """
-        Импорт бинарной карты в тритовую систему.
-        """
-        self.core.import_binary(binary_map)
+        system_snapshot = {
+            "root": root_snap,
+            "identity": identity_snap,
+            "manifest": manifest_snap,
+            "origin_system": origin_sys,
+            "origin_universe": origin_uni,
+            "origin_multiverse": origin_multi
+        }
 
-    def trit_command(self, command_line):
+        self.history.append(system_snapshot)
+        return system_snapshot
+
+    def snapshot(self):
         """
-        Выполнить текстовую трит-команду через TritShell.
+        Снимок единой системной модели TRIT98.
         """
-        return self.shell.execute(command_line)
+        return {
+            "last": self.history[-1] if self.history else None,
+            "history_length": len(self.history)
+        }
 
 
 if __name__ == "__main__":
-    system = TritSystem()
+    ts = TritSystem()
 
-    # Пример базового запуска
-    print("=== TRIT CYCLE ===")
-    print(system.trit_cycle())
+    print("=== TRIT SYSTEM UPDATE ===")
+    print(ts.update())
 
-    print("\n=== TRIT AUTO CYCLE ===")
-    print(system.trit_auto_cycle())
-
-    print("\n=== TRIT SNAPSHOT ===")
-    print(system.trit_snapshot())
+    print("\n=== TRIT SYSTEM SNAPSHOT ===")
+    print(ts.snapshot())
